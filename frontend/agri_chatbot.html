@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustainable Agriculture AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #e8f9e8, #d8f5d8);
+        }
+        .chat-message.ai {
+            background-color: #d1fae5;
+            position: relative;
+        }
+        .chat-message.ai:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-left: 15px solid #d1fae5;
+            border-bottom: 10px solid transparent;
+            right: -15px;
+            top: 10px;
+        }
+        .chat-message.user {
+            background-color: #c9e2f5;
+            position: relative;
+        }
+        .chat-message.user:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-right: 15px solid #c9e2f5;
+            border-bottom: 10px solid transparent;
+            left: -15px;
+            top: 10px;
+        }
+        .message-container {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #10B981;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            transition: background 0.3s ease-in-out;
+        }
+        .slider-track {
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-4xl flex flex-col h-[95vh] border border-green-200">
+        <!-- Header -->
+        <header class="flex items-center justify-between pb-4 border-b border-gray-200 mb-4">
+            <h1 class="text-2xl font-bold text-green-700">Agri-Bot: Your Farming Assistant</h1>
+            <div class="flex items-center space-x-2">
+                <div class="bg-green-500 rounded-full h-3 w-3 animate-pulse"></div>
+                <select id="language-selector" class="rounded-xl border border-gray-300 px-2 py-1 text-sm text-gray-700">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="kn">Kannada</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="flex-grow flex flex-col md:flex-row overflow-hidden space-y-6 md:space-y-0 md:space-x-6">
+            <!-- Chat Window -->
+            <div class="flex-1 flex flex-col bg-gray-50 rounded-2xl p-4 shadow-inner">
+                <div id="chat-history" class="flex-grow overflow-y-auto space-y-6 pr-2">
+                    <!-- Initial Bot Message -->
+                    <div class="flex items-start space-x-2 message-container">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm">🤖</div>
+                        <div class="chat-message ai p-4 rounded-xl rounded-bl-none max-w-[85%] shadow-md">
+                            <p id="initial-message" class="text-gray-800">Hello! I'm your AI-powered farming assistant. I can provide recommendations based on your soil, weather, and crop health data.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- User Input and Action Buttons -->
+                <div class="mt-4 flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3">
+                    <button id="get-recommendations-btn" class="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl font-semibold shadow-md hover:bg-green-700 transition duration-300">
+                        Get Recommendations 🌱
+                    </button>
+                    <div class="flex-1 relative">
+                        <input type="text" id="user-input" placeholder="Type your message..." class="w-full pl-4 pr-12 py-3 rounded-xl border-2 border-green-300 focus:outline-none focus:border-green-500 transition-colors duration-300 text-gray-800">
+                        <button id="send-btn" class="absolute inset-y-0 right-0 flex items-center justify-center pr-3 text-green-600 hover:text-green-800 transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data & Prediction Dashboard -->
+            <div class="w-full md:w-2/5 bg-gray-50 rounded-2xl p-4 shadow-inner">
+                <h2 class="text-lg font-bold text-green-700 mb-4 text-center">Data & Prediction Dashboard</h2>
+                
+                <!-- Live Data Integration -->
+                <div id="data-display" class="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 shadow-inner text-sm text-green-800 flex flex-col space-y-2">
+                    <p class="font-bold text-gray-700 flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                        <span>Live Weather & Soil Data</span>
+                    </p>
+                    <div id="live-data-metrics" class="text-center text-green-700 animate-pulse">
+                        <p>Simulating data streams...</p>
+                    </div>
+                </div>
+
+                <!-- Crop Prediction with ML -->
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Crop Prediction Inputs</h3>
+                    <div id="prediction-inputs" class="space-y-4">
+                        <div class="input-group">
+                            <label class="text-gray-600 text-sm flex justify-between">
+                                <span>Nitrogen (N)</span>
+                                <span id="n-val">50</span>
+                            </label>
+                            <input type="range" id="n-slider" min="0" max="100" value="50" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider-track">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-gray-600 text-sm flex justify-between">
+                                <span>Phosphorus (P)</span>
+                                <span id="p-val">50</span>
+                            </label>
+                            <input type="range" id="p-slider" min="0" max="100" value="50" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider-track">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-gray-600 text-sm flex justify-between">
+                                <span>Potassium (K)</span>
+                                <span id="k-val">50</span>
+                            </label>
+                            <input type="range" id="k-slider" min="0" max="100" value="50" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider-track">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-gray-600 text-sm flex justify-between">
+                                <span>pH Level</span>
+                                <span id="ph-val">7.0</span>
+                            </label>
+                            <input type="range" id="ph-slider" min="4" max="9" step="0.1" value="7.0" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider-track">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-gray-600 text-sm flex justify-between">
+                                <span>Rainfall (mm)</span>
+                                <span id="rainfall-val">100</span>
+                            </label>
+                            <input type="range" id="rainfall-slider" min="0" max="200" value="100" class="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer slider-track">
+                        </div>
+                    </div>
+                </div>
+                <button id="predict-crop-btn" class="w-full bg-emerald-600 text-white py-3 px-4 rounded-xl font-semibold shadow-md hover:bg-emerald-700 transition duration-300">
+                    Predict Best Crop 📊
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM element references
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const getRecommendationsBtn = document.getElementById('get-recommendations-btn');
+        const predictCropBtn = document.getElementById('predict-crop-btn');
+        const dataDisplay = document.getElementById('live-data-metrics');
+        const languageSelector = document.getElementById('language-selector');
+        const initialMessage = document.getElementById('initial-message');
+
+        // Language translations
+        const translations = {
+            en: {
+                initialMessage: "Hello! I'm your AI-powered farming assistant. I can provide recommendations based on your soil, weather, and crop health data.",
+                recommendationsBtn: "Get Recommendations 🌱",
+                predictCropBtn: "Predict Best Crop 📊",
+                placeholder: "Type your message...",
+                simulating: "Simulating data streams...",
+                analysisPending: "Analyzing data and preparing recommendations...",
+                analysisComplete: "Analysis complete. Recommendations provided in chat.",
+                chatFallback: "Thanks for your question! For specific farming advice, please use the 'Get Recommendations' or 'Predict Crop' buttons.",
+                faq: {
+                    "fertilizer": "For balanced soil, use a fertilizer with an NPK ratio of 10-10-10. Consider organic options for long-term soil health.",
+                    "disease": "Monitor your crops daily for signs of disease. Early detection is key. For common fungal diseases, a neem oil solution is a good natural remedy.",
+                    "pests": "Introduce beneficial insects like ladybugs to control pests. For severe infestations, a targeted pesticide is recommended.",
+                },
+                reportTitle: "Real-time Analysis Report:",
+                soilMoisture: "Soil Moisture:",
+                airTemp: "Air Temperature:",
+                humidity: "Humidity:",
+                cropHealth: "Crop Health:",
+                recommendation: "Recommendation:",
+                lowMoisture: "Needs attention",
+                predictionPending: "Analyzing inputs and predicting the best crop...",
+                cropResult: "Based on the provided data, the best crop for your field is: ",
+            },
+            hi: {
+                initialMessage: "नमस्ते! मैं आपका एआई-पावर्ड कृषि सहायक हूँ। मैं आपकी मिट्टी, मौसम और फसल के स्वास्थ्य डेटा के आधार पर सिफारिशें प्रदान कर सकता हूँ।",
+                recommendationsBtn: "सिफारिशें प्राप्त करें 🌱",
+                predictCropBtn: "सर्वोत्तम फसल का अनुमान लगाएँ 📊",
+                placeholder: "अपना संदेश टाइप करें...",
+                simulating: "डेटा स्ट्रीम का अनुकरण हो रहा है...",
+                analysisPending: "डेटा का विश्लेषण हो रहा है और सिफारिशें तैयार हो रही हैं...",
+                analysisComplete: "विश्लेषण पूरा हुआ। चैट में सिफारिशें प्रदान की गई हैं।",
+                chatFallback: "आपके प्रश्न के लिए धन्यवाद! विशिष्ट कृषि सलाह के लिए, कृपया 'सिफारिशें प्राप्त करें' या 'सर्वोत्तम फसल का अनुमान लगाएँ' बटन का उपयोग करें।",
+                faq: {
+                    "fertilizer": "संतुलित मिट्टी के लिए, 10-10-10 के एनपीके अनुपात वाले उर्वरक का उपयोग करें। दीर्घकालिक मिट्टी के स्वास्थ्य के लिए जैविक विकल्पों पर विचार करें।",
+                    "disease": "रोग के लक्षणों के लिए अपनी फसलों की दैनिक निगरानी करें। शुरुआती पहचान महत्वपूर्ण है। आम फंगल रोगों के लिए, नीम तेल का घोल एक अच्छा प्राकृतिक उपाय है।",
+                    "pests": "कीटों को नियंत्रित करने के लिए लेडीबग्स जैसे लाभकारी कीड़ों को पेश करें। गंभीर संक्रमण के लिए, एक लक्षित कीटनाशक की सिफारिश की जाती है।",
+                },
+                reportTitle: "वास्तविक समय विश्लेषण रिपोर्ट:",
+                soilMoisture: "मिट्टी की नमी:",
+                airTemp: "हवा का तापमान:",
+                humidity: "आर्द्रता:",
+                cropHealth: "फसल स्वास्थ्य:",
+                recommendation: "सिफारिश:",
+                lowMoisture: "ध्यान देने की आवश्यकता है",
+                predictionPending: "इनपुट का विश्लेषण और सर्वोत्तम फसल का अनुमान लगाया जा रहा है...",
+                cropResult: "प्रदान किए गए डेटा के आधार पर, आपके खेत के लिए सबसे अच्छी फसल है: ",
+            },
+            kn: {
+                initialMessage: "ನಮಸ್ತೆ! ನಾನು ನಿಮ್ಮ ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಆಧಾರಿತ ಕೃಷಿ ಸಹಾಯಕಿ. ನಿಮ್ಮ ಮಣ್ಣು, ಹವಾಮಾನ ಮತ್ತು ಬೆಳೆ ಆರೋಗ್ಯದ ಡೇಟಾ ಆಧರಿಸಿ ಸಲಹೆಗಳನ್ನು ನೀಡಬಲ್ಲೆ.",
+                recommendationsBtn: "ಸಲಹೆಗಳನ್ನು ಪಡೆಯಿರಿ 🌱",
+                predictCropBtn: "ಅತ್ಯುತ್ತಮ ಬೆಳೆ ಊಹಿಸಿ 📊",
+                placeholder: "ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ...",
+                simulating: "ಡೇಟಾ ಸ್ಟ್ರೀಮ್‌ಗಳನ್ನು ಅನುಕರಿಸಲಾಗುತ್ತಿದೆ...",
+                analysisPending: "ಡೇಟಾವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ ಮತ್ತು ಸಲಹೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...",
+                analysisComplete: "ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ಚಾಟ್‌ನಲ್ಲಿ ಸಲಹೆಗಳನ್ನು ಒದಗಿಸಲಾಗಿದೆ.",
+                chatFallback: "ನಿಮ್ಮ ಪ್ರಶ್ನೆಗಾಗಿ ಧನ್ಯವಾದಗಳು! ನಿರ್ದಿಷ್ಟ ಕೃಷಿ ಸಲಹೆಗಾಗಿ, ದಯವಿಟ್ಟು 'ಸಲಹೆಗಳನ್ನು ಪಡೆಯಿರಿ' ಅಥವಾ 'ಅತ್ಯುತ್ತಮ ಬೆಳೆ ಊಹಿಸಿ' ಬಟನ್‌ಗಳನ್ನು ಬಳಸಿ.",
+                faq: {
+                    "fertilizer": "ಸಮತೋಲಿತ ಮಣ್ಣಿಗಾಗಿ, 10-10-10 ಅನುಪಾತದ NPK ಹೊಂದಿರುವ ಗೊಬ್ಬರ ಬಳಸಿ. ದೀರ್ಘಕಾಲದ ಮಣ್ಣಿನ ಆರೋಗ್ಯಕ್ಕಾಗಿ ಸಾವಯವ ಆಯ್ಕೆಗಳನ್ನು ಪರಿಗಣಿಸಿ.",
+                    "disease": "ರೋಗದ ಲಕ್ಷಣಗಳಿಗಾಗಿ ನಿಮ್ಮ ಬೆಳೆಗಳನ್ನು ಪ್ರತಿದಿನ ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ. ಆರಂಭಿಕ ಪತ್ತೆ ಮುಖ್ಯವಾಗಿದೆ. ಸಾಮಾನ್ಯ ಶಿಲೀಂಧ್ರ ರೋಗಗಳಿಗೆ, ಬೇವಿನ ಎಣ್ಣೆ ದ್ರಾವಣ ಉತ್ತಮ ನೈಸರ್ಗಿಕ ಪರಿಹಾರವಾಗಿದೆ.",
+                    "pests": "ಕೀಟಗಳನ್ನು ನಿಯಂತ್ರಿಸಲು ಲೇಡಿಬಗ್‌ಗಳಂತಹ ಪ್ರಯೋಜನಕಾರಿ ಕೀಟಗಳನ್ನು ಪರಿಚಯಿಸಿ. ತೀವ್ರವಾದ ಮುತ್ತುಗಳಿಗೆ, ನಿರ್ದಿಷ್ಟ ಕೀಟನಾಶಕವನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗುತ್ತದೆ.",
+                },
+                reportTitle: "ರಿಯಲ್-ಟೈಮ್ ವಿಶ್ಲೇಷಣೆ ವರದಿ:",
+                soilMoisture: "ಮಣ್ಣಿನ ತೇವಾಂಶ:",
+                airTemp: "ಗಾಳಿಯ ತಾಪಮಾನ:",
+                humidity: "ಆರ್ದ್ರತೆ:",
+                cropHealth: "ಬೆಳೆ ಆರೋಗ್ಯ:",
+                recommendation: "ಸಲಹೆ:",
+                lowMoisture: "ಗಮನ ಹರಿಸಬೇಕಾಗಿದೆ",
+                predictionPending: "ಇನ್‌ಪುಟ್‌ಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಿ ಮತ್ತು ಅತ್ಯುತ್ತಮ ಬೆಳೆ ಊಹಿಸಲಾಗುತ್ತಿದೆ...",
+                cropResult: "ನೀಡಿದ ಡೇಟಾದ ಆಧಾರದ ಮೇಲೆ, ನಿಮ್ಮ ಜಮೀನಿಗೆ ಅತ್ಯುತ್ತಮ ಬೆಳೆ: ",
+            },
+        };
+
+        let currentLang = 'en';
+
+        function updateUIforLanguage() {
+            const lang = languageSelector.value;
+            currentLang = lang;
+            initialMessage.textContent = translations[lang].initialMessage;
+            getRecommendationsBtn.textContent = translations[lang].recommendationsBtn;
+            predictCropBtn.textContent = translations[lang].predictCropBtn;
+            userInput.placeholder = translations[lang].placeholder;
+        }
+
+        // Add event listener for language change
+        languageSelector.addEventListener('change', updateUIforLanguage);
+
+        // Slider value updates
+        document.getElementById('n-slider').addEventListener('input', (e) => {
+            document.getElementById('n-val').textContent = e.target.value;
+        });
+        document.getElementById('p-slider').addEventListener('input', (e) => {
+            document.getElementById('p-val').textContent = e.target.value;
+        });
+        document.getElementById('k-slider').addEventListener('input', (e) => {
+            document.getElementById('k-val').textContent = e.target.value;
+        });
+        document.getElementById('ph-slider').addEventListener('input', (e) => {
+            document.getElementById('ph-val').textContent = e.target.value;
+        });
+        document.getElementById('rainfall-slider').addEventListener('input', (e) => {
+            document.getElementById('rainfall-val').textContent = e.target.value;
+        });
+
+        // Function to create and append a chat message to the history
+        function addMessage(text, sender) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} space-x-2 message-container`;
+
+            let iconHtml = '';
+            if (sender === 'ai') {
+                iconHtml = '<div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm">🤖</div>';
+            } else {
+                iconHtml = '<div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">🧑‍🌾</div>';
+            }
+            messageContainer.innerHTML = iconHtml;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `chat-message ${sender} p-4 rounded-xl ${sender === 'user' ? 'rounded-bl-none' : 'rounded-br-none'} max-w-[85%] shadow-md`;
+            messageBubble.innerHTML = `<p class="text-gray-800">${text}</p>`;
+
+            messageContainer.appendChild(messageBubble);
+
+            chatHistory.appendChild(messageContainer);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Simulate fetching and analyzing data
+        function simulateDataAnalysis() {
+            const soilMoisture = (Math.random() * 50 + 30).toFixed(1);
+            const airTemp = (Math.random() * 10 + 20).toFixed(1);
+            const humidity = (Math.random() * 20 + 60).toFixed(1);
+            const analysisReports = [
+                "Early signs of fungal disease detected on 5% of leaves. 🍄",
+                "No significant pest or disease activity detected. Crops appear healthy. ✅",
+                "Mild nutrient deficiency detected (nitrogen). Leaves show slight yellowing. ⚠️",
+                "Heavy weed infestation detected in the central plot. 🌿"
+            ];
+            const visionReport = analysisReports[Math.floor(Math.random() * analysisReports.length)];
+
+            const report = translations[currentLang].reportTitle + `<br><br>` +
+                           `🌱 ` + translations[currentLang].soilMoisture + ` **${soilMoisture}%** (${translations[currentLang].lowMoisture})<br>` +
+                           `🌡️ ` + translations[currentLang].airTemp + ` **${airTemp}°C**<br>` +
+                           `💧 ` + translations[currentLang].humidity + ` **${humidity}%**<br>` +
+                           `🔍 ` + translations[currentLang].cropHealth + ` **${visionReport}**<br><br>` +
+                           `📝 **` + translations[currentLang].recommendation + `** Based on the data, it's a good time to adjust your irrigation schedule. To address this, a targeted application is recommended. Consider a low-impact solution to maintain sustainability.`;
+            return report;
+        }
+
+        // Simulate a simple ML model prediction
+        function predictCrop(n, p, k, ph, rainfall) {
+            // This is a simple, hardcoded logic to simulate a trained model
+            if (n > 80 && p > 40 && k > 40) return "Corn 🌽";
+            if (ph < 5.5 && rainfall > 150) return "Rice 🍚";
+            if (n < 20 && p > 60 && k < 30) return "Groundnuts 🥜";
+            if (ph > 7.5 && rainfall < 50) return "Millet🌾";
+            return "Wheat 🍞";
+        }
+
+        // Event listener for the "Get Recommendations" button
+        getRecommendationsBtn.addEventListener('click', () => {
+            const userMessage = "I need recommendations for my crops based on the latest data.";
+            addMessage(userMessage, 'user');
+
+            dataDisplay.innerHTML = `<p class="font-semibold text-center text-gray-700 animate-pulse">
+                ${translations[currentLang].analysisPending}
+            </p>`;
+            
+            setTimeout(() => {
+                const recommendation = simulateDataAnalysis();
+                addMessage(recommendation, 'ai');
+                dataDisplay.innerHTML = `<p class="font-semibold text-center text-gray-700">
+                    ${translations[currentLang].analysisComplete}
+                </p>`;
+            }, 2000);
+        });
+        
+        // Event listener for the "Predict Crop" button
+        predictCropBtn.addEventListener('click', () => {
+            const n = document.getElementById('n-slider').value;
+            const p = document.getElementById('p-slider').value;
+            const k = document.getElementById('k-slider').value;
+            const ph = document.getElementById('ph-slider').value;
+            const rainfall = document.getElementById('rainfall-slider').value;
+            
+            const userMessage = `Please predict the best crop for the following conditions: N: ${n}, P: ${p}, K: ${k}, pH: ${ph}, Rainfall: ${rainfall}mm`;
+            addMessage(userMessage, 'user');
+            
+            dataDisplay.innerHTML = `<p class="font-semibold text-center text-gray-700 animate-pulse">
+                ${translations[currentLang].predictionPending}
+            </p>`;
+
+            setTimeout(() => {
+                const bestCrop = predictCrop(n, p, k, ph, rainfall);
+                addMessage(`**${translations[currentLang].cropResult}**${bestCrop}`, 'ai');
+                dataDisplay.innerHTML = `<p class="font-semibold text-center text-gray-700">
+                    Prediction complete.
+                </p>`;
+            }, 2000);
+        });
+
+        // Event listener for the "Send" button and Enter key
+        function handleSendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                userInput.value = '';
+                
+                let botResponse = translations[currentLang].chatFallback;
+                // Simple FAQ logic
+                const lowerMessage = message.toLowerCase();
+                for (const keyword in translations[currentLang].faq) {
+                    if (lowerMessage.includes(keyword)) {
+                        botResponse = translations[currentLang].faq[keyword];
+                        break;
+                    }
+                }
+                
+                setTimeout(() => {
+                    addMessage(botResponse, 'ai');
+                }, 1000);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+
+        // Initial language and UI setup
+        updateUIforLanguage();
+
+        // Initial data simulation on page load
+        setTimeout(() => {
+            dataDisplay.innerHTML = `<div class="flex justify-around items-center">
+                <div class="text-center">
+                    <span class="text-3xl">🌡️</span>
+                    <p class="font-bold text-lg">${(Math.random() * 10 + 20).toFixed(1)}°C</p>
+                    <p class="text-xs text-gray-500">Temp</p>
+                </div>
+                <div class="text-center">
+                    <span class="text-3xl">💧</span>
+                    <p class="font-bold text-lg">${(Math.random() * 20 + 60).toFixed(1)}%</p>
+                    <p class="text-xs text-gray-500">Moisture</p>
+                </div>
+                <div class="text-center">
+                    <span class="text-3xl">💦</span>
+                    <p class="font-bold text-lg">${(Math.random() * 50 + 30).toFixed(1)}%</p>
+                    <p class="text-xs text-gray-500">Humidity</p>
+                </div>
+            </div>`;
+        }, 1000);
+    </script>
+</body>
+</html>
